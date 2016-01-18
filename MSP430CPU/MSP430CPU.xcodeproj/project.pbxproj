@@ -1,0 +1,290 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1B5F13EA1C4C3D0300F8E9F5 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = 1B5F13E91C4C3D0300F8E9F5 /* decode.c */; };
+		1B6EB8031C4C14A600FFF7DF /* MSP430CPU.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B6EB8021C4C14A600FFF7DF /* MSP430CPU.m */; };
+		1B6EB8061C4C24D300FFF7DF /* MSP430Ctx.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B6EB8051C4C24D300FFF7DF /* MSP430Ctx.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1B5F13E91C4C3D0300F8E9F5 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
+		1B5F13EB1C4C3D2600F8E9F5 /* decode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = decode.h; sourceTree = "<group>"; };
+		1B6EB7F91C4C143200FFF7DF /* MSP430CPU.hopperCPU */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MSP430CPU.hopperCPU; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B6EB7FC1C4C143200FFF7DF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1B6EB8021C4C14A600FFF7DF /* MSP430CPU.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MSP430CPU.m; sourceTree = "<group>"; };
+		1B6EB8041C4C14BC00FFF7DF /* MSP430CPU.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSP430CPU.h; sourceTree = "<group>"; };
+		1B6EB8051C4C24D300FFF7DF /* MSP430Ctx.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MSP430Ctx.m; sourceTree = "<group>"; };
+		1B6EB8071C4C24E500FFF7DF /* MSP430Ctx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSP430Ctx.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1B6EB7F61C4C143200FFF7DF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1B6EB7F01C4C143200FFF7DF = {
+			isa = PBXGroup;
+			children = (
+				1B6EB7FB1C4C143200FFF7DF /* MSP430CPU */,
+				1B6EB7FA1C4C143200FFF7DF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1B6EB7FA1C4C143200FFF7DF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1B6EB7F91C4C143200FFF7DF /* MSP430CPU.hopperCPU */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1B6EB7FB1C4C143200FFF7DF /* MSP430CPU */ = {
+			isa = PBXGroup;
+			children = (
+				1B5F13EB1C4C3D2600F8E9F5 /* decode.h */,
+				1B5F13E91C4C3D0300F8E9F5 /* decode.c */,
+				1B6EB7FC1C4C143200FFF7DF /* Info.plist */,
+				1B6EB8041C4C14BC00FFF7DF /* MSP430CPU.h */,
+				1B6EB8021C4C14A600FFF7DF /* MSP430CPU.m */,
+				1B6EB8071C4C24E500FFF7DF /* MSP430Ctx.h */,
+				1B6EB8051C4C24D300FFF7DF /* MSP430Ctx.m */,
+			);
+			path = MSP430CPU;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1B6EB7F81C4C143200FFF7DF /* MSP430CPU */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B6EB7FF1C4C143200FFF7DF /* Build configuration list for PBXNativeTarget "MSP430CPU" */;
+			buildPhases = (
+				1B6EB7F51C4C143200FFF7DF /* Sources */,
+				1B6EB7F61C4C143200FFF7DF /* Frameworks */,
+				1B6EB7F71C4C143200FFF7DF /* Resources */,
+				1B6EB8081C4C2E4700FFF7DF /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MSP430CPU;
+			productName = MSP430CPU;
+			productReference = 1B6EB7F91C4C143200FFF7DF /* MSP430CPU.hopperCPU */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1B6EB7F11C4C143200FFF7DF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0720;
+				ORGANIZATIONNAME = wjl;
+				TargetAttributes = {
+					1B6EB7F81C4C143200FFF7DF = {
+						CreatedOnToolsVersion = 7.2;
+					};
+				};
+			};
+			buildConfigurationList = 1B6EB7F41C4C143200FFF7DF /* Build configuration list for PBXProject "MSP430CPU" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 1B6EB7F01C4C143200FFF7DF;
+			productRefGroup = 1B6EB7FA1C4C143200FFF7DF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1B6EB7F81C4C143200FFF7DF /* MSP430CPU */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1B6EB7F71C4C143200FFF7DF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1B6EB8081C4C2E4700FFF7DF /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "rm -rf \"${INSTALL_PATH}/MSP430CPU.hopperCPU\"\nmkdir -p \"${INSTALL_PATH}\"\ncp -rf \"${BUILT_PRODUCTS_DIR}/MSP430CPU.hopperCPU\" \"${INSTALL_PATH}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1B6EB7F51C4C143200FFF7DF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B6EB8061C4C24D300FFF7DF /* MSP430Ctx.m in Sources */,
+				1B5F13EA1C4C3D0300F8E9F5 /* decode.c in Sources */,
+				1B6EB8031C4C14A600FFF7DF /* MSP430CPU.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1B6EB7FD1C4C143200FFF7DF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		1B6EB7FE1C4C143200FFF7DF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		1B6EB8001C4C143200FFF7DF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/MSP430CPU/HopperSDK/include/";
+				INFOPLIST_FILE = MSP430CPU/Info.plist;
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Application Support/Hopper/PlugIns/CPUs";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sourceflux.MSP430CPU;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = NO;
+				WRAPPER_EXTENSION = hopperCPU;
+			};
+			name = Debug;
+		};
+		1B6EB8011C4C143200FFF7DF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/MSP430CPU/HopperSDK/include/";
+				INFOPLIST_FILE = MSP430CPU/Info.plist;
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Application Support/Hopper/PlugIns/CPUs";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sourceflux.MSP430CPU;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = NO;
+				WRAPPER_EXTENSION = hopperCPU;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1B6EB7F41C4C143200FFF7DF /* Build configuration list for PBXProject "MSP430CPU" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B6EB7FD1C4C143200FFF7DF /* Debug */,
+				1B6EB7FE1C4C143200FFF7DF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1B6EB7FF1C4C143200FFF7DF /* Build configuration list for PBXNativeTarget "MSP430CPU" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B6EB8001C4C143200FFF7DF /* Debug */,
+				1B6EB8011C4C143200FFF7DF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1B6EB7F11C4C143200FFF7DF /* Project object */;
+}
