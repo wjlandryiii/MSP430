@@ -10,29 +10,9 @@
 #include "generated.c"
 
 
-enum {
-	OPMODE_UNKNOWN,
-	OPMODE_REGISTER,
-	OPMODE_INDEXED,
-	OPMODE_SYMBOLIC,
-	OPMODE_ABSOLUTE,
-	OPMODE_INDIRECT_REGISTER,
-	OPMODE_INDIRECT_AUTOINC,
-	OPMODE_IMMEDIATE,
-	OPMODE_JUMP,
-};
-
-struct operand {
-	int mode;
-	int disp;
-	int reg;
-	int imm;
-	int addr;
-	int offset;
-};
 
 
-struct operand reg_operand(int reg){
+static struct operand reg_operand(int reg){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_REGISTER;
@@ -40,7 +20,7 @@ struct operand reg_operand(int reg){
 	return operand;
 }
 
-struct operand indexed_operand(int reg, int disp){
+static struct operand indexed_operand(int reg, int disp){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_INDEXED;
@@ -49,7 +29,7 @@ struct operand indexed_operand(int reg, int disp){
 	return operand;
 }
 
-struct operand symbolic_operand(int disp){
+static struct operand symbolic_operand(int disp){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_SYMBOLIC;
@@ -57,7 +37,7 @@ struct operand symbolic_operand(int disp){
 	return operand;
 }
 
-struct operand absolute_operand(int addr){
+static struct operand absolute_operand(int addr){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_ABSOLUTE;
@@ -65,7 +45,7 @@ struct operand absolute_operand(int addr){
 	return operand;
 }
 
-struct operand indirect_register_operand(int reg){
+static struct operand indirect_register_operand(int reg){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_INDIRECT_REGISTER;
@@ -73,7 +53,7 @@ struct operand indirect_register_operand(int reg){
 	return operand;
 }
 
-struct operand indirect_autoinc_operand(int reg){
+static struct operand indirect_autoinc_operand(int reg){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_INDIRECT_AUTOINC;
@@ -81,7 +61,7 @@ struct operand indirect_autoinc_operand(int reg){
 	return operand;
 }
 
-struct operand immediate_operand(int imm){
+static struct operand immediate_operand(int imm){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_IMMEDIATE;
@@ -89,7 +69,7 @@ struct operand immediate_operand(int imm){
 	return operand;
 }
 
-struct operand jump_operand(int offset){
+static struct operand jump_operand(int offset){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_JUMP;
@@ -97,33 +77,7 @@ struct operand jump_operand(int offset){
 	return operand;
 }
 
-enum {
-	OP_UNKNOW = 0,
-	OP_MOV,
-	OP_ADD,
-	OP_ADDC,
-};
 
-enum {
-	OPSIZE_UNKNOWN,
-	OPSIZE_8,
-	OPSIZE_16,
-};
-
-struct instruction {
-	int operation;
-	int operand_size;
-	int noperands;
-	struct operand operands[2];
-};
-
-struct instruction init_instruction(int operation, int operand_size, int noperands){
-	struct instruction instruction;
-	instruction.operation = operation;
-	instruction.operand_size = operand_size;
-	instruction.noperands = noperands;
-	return instruction;
-}
 
 
 int string_for_operand(struct operand operand, char *out){
@@ -195,43 +149,3 @@ void disassemble_instruction(struct instruction inst, char *out){
 		}
 	}
 }
-
-/*
-int main(int argc, char *argv[]){
-	char buff[1024];
-	struct instruction inst;
-
-	inst = init_instruction(OPER_MOV, OPSIZE_8, 2);
-	inst.operands[0] = reg_operand(REG_R14);
-	inst.operands[1] = reg_operand(REG_R15);
-	disassemble_instruction(inst, buff);
-	puts(buff);
-
-	inst = init_instruction(OPER_RRA, OPSIZE_16, 1);
-	inst.operands[0] = reg_operand(REG_R15);
-	disassemble_instruction(inst, buff);
-	puts(buff);
-
-	inst = init_instruction(OPER_RRA, OPSIZE_16, 1);
-	inst.operands[0] = indexed_operand(REG_R15, 0x055);
-	disassemble_instruction(inst, buff);
-	puts(buff);
-
-	inst = init_instruction(OPER_RRA, OPSIZE_16, 1);
-	inst.operands[0] = indirect_register_operand(REG_R15);
-	disassemble_instruction(inst, buff);
-	puts(buff);
-
-	inst = init_instruction(OPER_RRA, OPSIZE_16, 1);
-	inst.operands[0] = indirect_autoinc_operand(REG_R15);
-	disassemble_instruction(inst, buff);
-	puts(buff);
-
-	inst = init_instruction(OPER_JMP, OPSIZE_16, 1);
-	inst.operands[0] = symbolic_operand(0x10);
-	disassemble_instruction(inst, buff);
-	puts(buff);
-
-	return 0;
-}
-*/
