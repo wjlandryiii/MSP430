@@ -12,6 +12,7 @@ operations = [
         "jeq",
         "jnc",
         "jc",
+        "jn",
         "jge",
         "jl",
         "jmp",

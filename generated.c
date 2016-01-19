@@ -11,6 +11,7 @@ enum {
 	OPER_JEQ,
 	OPER_JNC,
 	OPER_JC,
+	OPER_JN,
 	OPER_JGE,
 	OPER_JL,
 	OPER_JMP,
@@ -61,6 +62,7 @@ char *lookup_mnemonic_for_operation(int operation){
 		case OPER_JEQ:	return "jeq";
 		case OPER_JNC:	return "jnc";
 		case OPER_JC:	return "jc";
+		case OPER_JN:	return "jn";
 		case OPER_JGE:	return "jge";
 		case OPER_JL:	return "jl";
 		case OPER_JMP:	return "jmp";

@@ -19,6 +19,7 @@ enum {
 	OPMODE_INDIRECT_REGISTER,
 	OPMODE_INDIRECT_AUTOINC,
 	OPMODE_IMMEDIATE,
+	OPMODE_JUMP,
 };
 
 struct operand {
@@ -27,6 +28,7 @@ struct operand {
 	int reg;
 	int imm;
 	int addr;
+	int offset;
 };
 
 
@@ -83,6 +85,15 @@ struct operand immediate_operand(int imm){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_IMMEDIATE;
+	operand.imm = imm;
+	return operand;
+}
+
+struct operand jump_operand(int offset){
+	struct operand operand = {0};
+
+	operand.mode = OPMODE_JUMP;
+	operand.offset = offset;
 	return operand;
 }
 
@@ -145,6 +156,13 @@ int string_for_operand(struct operand operand, char *out){
 	case OPMODE_IMMEDIATE:
 		sprintf(out, "#0x%x", operand.imm);
 		return 0;
+	case OPMODE_JUMP:
+		if(0 <= operand.offset){
+			sprintf(out, "$+0x%x", operand.offset);
+		} else {
+			sprintf(out, "$-0x%x", -operand.offset);
+		}
+		return 0;
 	default:
 		out[0] = 0;
 		return -1;
@@ -178,7 +196,7 @@ void disassemble_instruction(struct instruction inst, char *out){
 	}
 }
 
-
+/*
 int main(int argc, char *argv[]){
 	char buff[1024];
 	struct instruction inst;
@@ -216,3 +234,4 @@ int main(int argc, char *argv[]){
 
 	return 0;
 }
+*/

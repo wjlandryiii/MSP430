@@ -1,4 +1,4 @@
-all: disassemble main
+all: main
 
 decode: decode.c
 	gcc -g -o $@ $<
