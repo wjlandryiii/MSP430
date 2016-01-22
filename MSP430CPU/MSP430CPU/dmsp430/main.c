@@ -110,28 +110,26 @@ int main(int argc, char *argv[]){
 	//test_inst_bin();
 	//
 
-	/*
 	int jz_condition = 1;
 	int jmp_condition = 7;
 
-	printf("jz  %02x\n", encode_jump(jz_condition, ((0x4402 - 0x442e) - 2) >> 1));
-	printf("jmp %02x\n", encode_jump(jmp_condition, ((0x4406 - 0x4430) - 2) >> 1));
-	*/
+	//printf("jz  %02x\n", encode_jump(jz_condition, ((0x4402 - 0x442e) - 2) >> 1));
+	printf("jmp %02x\n", encode_jump(jmp_condition, ((0x4490 - 0x4480) - 2) >> 1));
 
+	uint16_t w0 = encode_jump(jmp_condition, ((0x4490 - 0x4480) - 2) >> 1);
 	char disassembly[1024];
 	uint8_t buff[6] = {0};
 	//3012 7F00
-	buff[0] = 0x30;
-	buff[1] = 0x12;
-	buff[2] = 0x7f;
-	buff[3] = 0x00;
+	buff[0] = w0 & 0xff;
+	buff[1] = w0 >> 8;
+
+	printf("%04x: %02x %02x\n", w0, buff[0], buff[1]);
 
 	struct instruction inst;
 
 	unpack_instruction(buff, buff+6, &inst);
 	disassemble_instruction(inst, disassembly);
 	puts(disassembly);
-
 
 	return 0;
 }

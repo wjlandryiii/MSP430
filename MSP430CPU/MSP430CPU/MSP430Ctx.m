@@ -113,19 +113,23 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 
 
 - (int)disassembleSingleInstruction:(DisasmStruct *)disasm usingProcessorMode:(NSUInteger)mode {
-	struct instruction inst;
+	struct instruction *inst;
 	int len, i;
 	
-	len = unpack_instruction(disasm->bytes, disasm->bytes+6, &inst);
+	inst = (struct instruction *)calloc(1, sizeof(*inst));
+	disasm->instruction.userData = (unsigned long)inst;
+	
+	len = unpack_instruction(disasm->bytes, disasm->bytes+6, inst);
 	
 	if(len % 2 != 0){
-		NSLog(@"WTF??");
+		NSLog(@"WTF?? %04llx %d", disasm->virtualAddr, len);
 	}
 	
 	if(0 < len){
-		strcpy(disasm->instruction.mnemonic, lookup_mnemonic_for_operation(inst.operation));
+		strcpy(disasm->instruction.mnemonic, lookup_mnemonic_for_operation(inst->operation));
 		
-		switch(inst.operation){
+		
+		switch(inst->operation){
 			case OPER_CALL:
 				disasm->instruction.branchType = DISASM_BRANCH_CALL;
 				break;
@@ -151,8 +155,6 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 				disasm->instruction.branchType = DISASM_BRANCH_JL;
 				break;
 			case OPER_JMP:
-				disasm->instruction.branchType = DISASM_BRANCH_NONE;
-				break;
 			case OPER_BR:
 				disasm->instruction.branchType = DISASM_BRANCH_JMP;
 				break;
@@ -165,67 +167,8 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 				break;
 		}
 		
-		for(i = 0; i < inst.noperands; i++){
-			string_for_operand(inst.operands[i], disasm->operand[i].mnemonic);
-			switch(inst.operands[i].mode){
-				case OPMODE_REGISTER:
-					disasm->operand[i].type = DISASM_OPERAND_REGISTER_TYPE;
-					disasm->operand[i].accessMode = DISASM_ACCESS_NONE;
-					break;
-
-				case OPMODE_INDEXED:
-					disasm->operand[i].type = DISASM_OPERAND_RELATIVE;
-					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
-					break;
-					
-				case OPMODE_SYMBOLIC:
-					disasm->operand[i].type = DISASM_OPERAND_RELATIVE;
-					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
-					break;
-				
-				case OPMODE_ABSOLUTE:
-					disasm->operand[i].type = DISASM_OPERAND_ABSOLUTE;
-					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
-					break;
-				case OPMODE_INDIRECT_REGISTER:
-					disasm->operand[i].type = DISASM_OPERAND_RELATIVE;
-					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
-					break;
-				case OPMODE_INDIRECT_AUTOINC:
-					disasm->operand[i].type = DISASM_OPERAND_RELATIVE;
-					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
-					break;
-				case OPMODE_IMMEDIATE:
-					disasm->operand[i].type = DISASM_OPERAND_CONSTANT_TYPE;
-					disasm->operand[i].accessMode = DISASM_ACCESS_NONE;
-					break;
-				case OPMODE_JUMP:
-					//disasm->instruction.addressValue = disasm->virtualAddr + inst.operands[i].offset;
-					disasm->operand[0].type = DISASM_OPERAND_CONSTANT_TYPE | DISASM_OPERAND_RELATIVE;
-					disasm->operand[0].size = 16;
-					disasm->operand[i].immediateValue = disasm->instruction.addressValue;
-					sprintf(disasm->operand[i].mnemonic, "#0x%llx", disasm->virtualAddr + inst.operands[i].offset);
-					break;
-					/*if(inst.jump.condition == 7){
-					 strcpy(disasm->instruction.mnemonic, "jmp");
-					 disasm->instruction.branchType = DISASM_BRANCH_JMP;
-					 
-					 disasm->instruction.addressValue = (disasm->virtualAddr + inst.jump.offset * 2) & 0xffff;
-					 disasm->operand[0].type = DISASM_OPERAND_CONSTANT_TYPE | DISASM_OPERAND_RELATIVE;
-					 disasm->operand[0].immediateValue = disasm->instruction.addressValue;
-					 
-					 if(0 <= inst.jump.offset){
-					 sprintf(disasm->operand[0].mnemonic, "#0x%x", inst.jump.offset * 2);
-					 } else {
-					 sprintf(disasm->operand[0].mnemonic, "#-0x%x", inst.jump.offset * 2);
-					 }
-					 return 2;
-					 } else {
-					 */
-					
-					
-					
-			}
+		for(i = 0; i < inst->noperands; i++){
+			string_for_operand(inst->operands[i], disasm->operand[i].mnemonic);
 		}
 		return len;
 	} else {
@@ -237,7 +180,46 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 	return NO;
 }
 
-- (void)performBranchesAnalysis:(DisasmStruct *)disasm computingNextAddress:(Address *)next andBranches:(NSMutableArray *)branches forProcedure:(NSObject<HPProcedure> *)procedure basicBlock:(NSObject<HPBasicBlock> *)basicBlock ofSegment:(NSObject<HPSegment> *)segment calledAddresses:(NSMutableArray *)calledAddresses callsites:(NSMutableArray *)callSitesAddresses {
+- (void)performBranchesAnalysis:(DisasmStruct *)disasm
+	   computingNextAddress:(Address *)next
+		    andBranches:(NSMutableArray *)branches
+		   forProcedure:(NSObject<HPProcedure> *)procedure
+		     basicBlock:(NSObject<HPBasicBlock> *)basicBlock
+		      ofSegment:(NSObject<HPSegment> *)segment
+		calledAddresses:(NSMutableArray *)calledAddresses
+		      callsites:(NSMutableArray *)callSitesAddresses {
+	struct instruction *inst;
+	
+	inst = (struct instruction *)disasm->instruction.userData;
+	
+	switch(inst->operation){
+		case OPER_BR:
+			*next = BAD_ADDRESS;
+			[branches addObject:[NSNumber numberWithUnsignedLongLong:inst->operands[0].imm]];
+			break;
+		case OPER_JMP:
+			*next = BAD_ADDRESS;
+		case OPER_JNE:
+		case OPER_JEQ:
+		case OPER_JNC:
+		case OPER_JC:
+		case OPER_JN:
+		case OPER_JGE:
+		case OPER_JL:
+			[branches addObject:[NSNumber numberWithUnsignedLongLong:disasm->virtualAddr + inst->operands[0].offset]];
+			break;
+		
+		case OPER_CALL:
+			//[calledAddresses addObject:[NSNumber numberWithUnsignedLongLong:inst->operands[0].addr]];
+			if(inst->operands[0].mode == OPMODE_IMMEDIATE){
+				unsigned long long callto = inst->operands[0].imm;
+				[calledAddresses addObject:[NSNumber numberWithUnsignedLongLong:callto]];
+			}
+			break;
+			
+	}
+	
+	NSLog(@"branch analysis: %llx", disasm->virtualAddr);
 	
 }
 
@@ -264,6 +246,8 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 		
 		i = 0;
 		while(disasm->operand[i].mnemonic[0] != 0){
+			//TODO: figure out how to use symbol labels
+			//NSString *sym = [_file nameForVirtualAddress:disasm->operand[i].immediateValue];
 			strcat(p, disasm->operand[i].mnemonic);
 			i++;
 			if(disasm->operand[i].mnemonic[0] != 0){
