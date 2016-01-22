@@ -109,7 +109,7 @@ int main(int argc, char *argv[]){
 
 	//test_inst_bin();
 	//
-	
+
 	/*
 	int jz_condition = 1;
 	int jmp_condition = 7;
@@ -118,14 +118,19 @@ int main(int argc, char *argv[]){
 	printf("jmp %02x\n", encode_jump(jmp_condition, ((0x4406 - 0x4430) - 2) >> 1));
 	*/
 
+	char disassembly[1024];
 	uint8_t buff[6] = {0};
-
-	buff[0] = 0x9f;
-	buff[1] = 0x4f;
+	//3012 7F00
+	buff[0] = 0x30;
+	buff[1] = 0x12;
+	buff[2] = 0x7f;
+	buff[3] = 0x00;
 
 	struct instruction inst;
 
 	unpack_instruction(buff, buff+6, &inst);
+	disassemble_instruction(inst, disassembly);
+	puts(disassembly);
 
 
 	return 0;

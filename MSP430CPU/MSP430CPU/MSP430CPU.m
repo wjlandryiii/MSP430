@@ -177,12 +177,18 @@
 
 - (NSData *)nopWithSize:(NSUInteger)size andMode:(NSUInteger)cpuMode forFile:(NSObject<HPDisassembledFile> *)file {
 	if((size & 1) == 0) {
+		NSUInteger i;
 		NSMutableData *nopArray = [[NSMutableData alloc] initWithCapacity:size];
 		[nopArray setLength:size];
 		uint16_t *ptr = (uint16_t *)[nopArray mutableBytes];
-		for(NSUInteger i = 0; i < size; i += 2){
+		for(i = 0; i < size; i += 4){
+			//3340 4600
+			OSWriteLittleInt16(ptr, i, 0x4033);
+			OSWriteLittleInt16(ptr, i+2, 0x0000);
+		}
+		for(; i < size; i += 2){
 			//TODO: byteorder and is there a convention for NOPs?
-			OSWriteLittleInt16(ptr, i, 0x4f0f);
+			OSWriteLittleInt16(ptr, i, 0x4303);
 		}
 		return [NSData dataWithData:nopArray];
 	} else {

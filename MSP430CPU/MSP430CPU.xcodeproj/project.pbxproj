@@ -7,14 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1B5F13EA1C4C3D0300F8E9F5 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = 1B5F13E91C4C3D0300F8E9F5 /* decode.c */; };
+		1B56E68C1C4EFB69003D7329 /* dmsp430.c in Sources */ = {isa = PBXBuildFile; fileRef = 1B56E6871C4EFB69003D7329 /* dmsp430.c */; };
+		1B56E68D1C4EFB69003D7329 /* generate.py in Resources */ = {isa = PBXBuildFile; fileRef = 1B56E6891C4EFB69003D7329 /* generate.py */; };
+		1B56E68E1C4EFB69003D7329 /* generated.c in Sources */ = {isa = PBXBuildFile; fileRef = 1B56E68A1C4EFB69003D7329 /* generated.c */; };
 		1B6EB8031C4C14A600FFF7DF /* MSP430CPU.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B6EB8021C4C14A600FFF7DF /* MSP430CPU.m */; };
 		1B6EB8061C4C24D300FFF7DF /* MSP430Ctx.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B6EB8051C4C24D300FFF7DF /* MSP430Ctx.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1B5F13E91C4C3D0300F8E9F5 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
-		1B5F13EB1C4C3D2600F8E9F5 /* decode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = decode.h; sourceTree = "<group>"; };
+		1B56E6871C4EFB69003D7329 /* dmsp430.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dmsp430.c; path = dmsp430/dmsp430.c; sourceTree = "<group>"; };
+		1B56E6881C4EFB69003D7329 /* dmsp430.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = dmsp430.h; path = dmsp430/dmsp430.h; sourceTree = "<group>"; };
+		1B56E6891C4EFB69003D7329 /* generate.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = generate.py; path = dmsp430/generate.py; sourceTree = "<group>"; };
+		1B56E68A1C4EFB69003D7329 /* generated.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = generated.c; path = dmsp430/generated.c; sourceTree = "<group>"; };
+		1B56E68B1C4EFB69003D7329 /* generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = generated.h; path = dmsp430/generated.h; sourceTree = "<group>"; };
 		1B6EB7F91C4C143200FFF7DF /* MSP430CPU.hopperCPU */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MSP430CPU.hopperCPU; sourceTree = BUILT_PRODUCTS_DIR; };
 		1B6EB7FC1C4C143200FFF7DF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1B6EB8021C4C14A600FFF7DF /* MSP430CPU.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MSP430CPU.m; sourceTree = "<group>"; };
@@ -34,6 +39,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1B56E68F1C4EFB70003D7329 /* dmsp430 */ = {
+			isa = PBXGroup;
+			children = (
+				1B56E6871C4EFB69003D7329 /* dmsp430.c */,
+				1B56E6881C4EFB69003D7329 /* dmsp430.h */,
+				1B56E6891C4EFB69003D7329 /* generate.py */,
+				1B56E68A1C4EFB69003D7329 /* generated.c */,
+				1B56E68B1C4EFB69003D7329 /* generated.h */,
+			);
+			name = dmsp430;
+			sourceTree = "<group>";
+		};
 		1B6EB7F01C4C143200FFF7DF = {
 			isa = PBXGroup;
 			children = (
@@ -53,8 +70,7 @@
 		1B6EB7FB1C4C143200FFF7DF /* MSP430CPU */ = {
 			isa = PBXGroup;
 			children = (
-				1B5F13EB1C4C3D2600F8E9F5 /* decode.h */,
-				1B5F13E91C4C3D0300F8E9F5 /* decode.c */,
+				1B56E68F1C4EFB70003D7329 /* dmsp430 */,
 				1B6EB7FC1C4C143200FFF7DF /* Info.plist */,
 				1B6EB8041C4C14BC00FFF7DF /* MSP430CPU.h */,
 				1B6EB8021C4C14A600FFF7DF /* MSP430CPU.m */,
@@ -121,6 +137,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1B56E68D1C4EFB69003D7329 /* generate.py in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,7 +165,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				1B6EB8061C4C24D300FFF7DF /* MSP430Ctx.m in Sources */,
-				1B5F13EA1C4C3D0300F8E9F5 /* decode.c in Sources */,
+				1B56E68C1C4EFB69003D7329 /* dmsp430.c in Sources */,
+				1B56E68E1C4EFB69003D7329 /* generated.c in Sources */,
 				1B6EB8031C4C14A600FFF7DF /* MSP430CPU.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

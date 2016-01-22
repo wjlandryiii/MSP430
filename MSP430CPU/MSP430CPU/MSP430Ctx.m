@@ -12,7 +12,7 @@
 #import <Hopper/CPUDefinition.h>
 #import <Hopper/HPDisassembledFile.h>
 
-#include "decode.h"
+#include "dmsp430/dmsp430.h"
 
 /*
  pc  4400  sp  0000  sr  0000  cg  0000
@@ -40,6 +40,17 @@
 
 -(void)initDisasmStructure:(DisasmStruct *)disasm withSyntaxIndex:(NSUInteger)syntaxIndex {
 	bzero(disasm, sizeof(*disasm));
+	disasm->instruction.mnemonic[0] = 0;
+	disasm->instruction.addressValue = 0;
+	disasm->instruction.branchType = DISASM_BRANCH_NONE;
+	disasm->instruction.condition = DISASM_INST_COND_AL;
+	bzero(&disasm->instruction.eflags, sizeof(DisasmEFLAGS));
+	bzero(&disasm->prefix, sizeof(DisasmPrefix));
+	for (int i=0; i<DISASM_MAX_OPERANDS; i++) {
+		disasm->operand[i].type = DISASM_OPERAND_NO_OPERAND;
+		disasm->operand[i].immediateValue = 0;
+	}
+
 }
 
 -(Address)adjustCodeAddress:(Address)address {
@@ -60,7 +71,14 @@
 
 -(int)isNopAt:(Address)address {
 	//TODO: 0x4f0f  ? byteorder?
-	return 0;
+	
+	if([_file readUInt16AtVirtualAddress:address] == 0x4303){
+		return 1;
+	} else if([_file readUInt16AtVirtualAddress:address] == 0x4033){
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 - (BOOL)hasProcedurePrologAt:(Address)address{
@@ -94,266 +112,124 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 }
 
 
-static char *jmp_mnemonics[] = {
-	"jne",
-	"jeq",
-	"jnc",
-	"jc",
-	"jn",
-	"jge",
-	"jl",
-	"jmp",
-};
-
-static char *single_mnemonics[] = {
-	"rrc",
-	"swpb",
-	"rra",
-	"sxt",
-	"push",
-	"call",
-	"reti",
-};
-
-static char *double_mnemonics[] = {
-	"mov",
-	"add",
-	"addc",
-	"subc",
-	"sub",
-	"cmp",
-	"dadd",
-	"bit",
-	"bic",
-	"bis",
-	"xor",
-	"and",
-};
-
-static char *reg_strings[] = {
-	"pc",
-	"sp",
-	"sr",
-	"r3",
-	"r4",
-	"r5",
-	"r6",
-	"r7",
-	"r8",
-	"r9",
-	"r10",
-	"r11",
-	"r12",
-	"r13",
-	"r14",
-	"r15",
-};
-
-
-int single_fmt(DisasmStruct * disasm, struct single *s, uint16_t w1){
-	char *reg;
-	
-	strcpy(disasm->instruction.mnemonic, single_mnemonics[s->opcode & 7]);
-	if(s->bw){
-		strcat(disasm->instruction.mnemonic, ".b");
-	}
-	
-	reg = reg_strings[s->reg];
-	
-	switch(s->ad){
-		case 0:
-			strcpy(disasm->operand[0].mnemonic, reg);
-			disasm->operand[0].type = DISASM_OPERAND_REGISTER_TYPE;
-			return 2;
-		case 1:
-			sprintf(disasm->operand[0].mnemonic, "0x%x(%s)", w1, reg);
-			disasm->operand[0].type = DISASM_OPERAND_REGISTER_TYPE | DISASM_OPERAND_RELATIVE;
-			return 4;
-		case 2:
-			sprintf(disasm->operand[0].mnemonic, "@%s", reg);
-			disasm->operand[0].type = DISASM_OPERAND_MEMORY_TYPE;
-			return 2;
-		case 4:
-			sprintf(disasm->operand[0].mnemonic, "@%s+", reg);
-			disasm->operand[0].type = DISASM_OPERAND_MEMORY_TYPE;
-			return 2;
-		default:
-			return 0;
-	}
-}
-
-
-int double_fmt(DisasmStruct *disasm, struct double_ *d, uint16_t w1, uint16_t w2){
-	char *src_reg;
-	char *dst_reg;
-	int len = 2;
-	
-	
-	strcpy(disasm->instruction.mnemonic, double_mnemonics[d->opcode - 4]);
-	if(d->bw){
-		strcat(disasm->instruction.mnemonic, ".b");
-	}
-	
-	src_reg = reg_strings[d->src];
-	dst_reg = reg_strings[d->dst];
-	
-	if(d->src == 2 && ((d->as == 1 && d->ad == 1) || d->as == 2 || d->ad == 3)){
-		switch(d->as){
-			case 1:
-				strcpy(disasm->operand[0].mnemonic, "&sr");
-				break;
-			case 2:
-				strcpy(disasm->operand[0].mnemonic, "#4");
-				break;
-			case 3:
-				strcpy(disasm->operand[0].mnemonic, "#8");
-				break;
-			default:
-				return 0;
-		}
-	} else if(d->src == 3){
-		switch(d->as){
-			case 0:
-				strcpy(disasm->operand[0].mnemonic, "#0");
-				break;
-			case 1:
-				strcpy(disasm->operand[0].mnemonic, "#1");
-				break;
-			case 2:
-				strcpy(disasm->operand[0].mnemonic, "#2");
-				break;
-			case 3:
-				strcpy(disasm->operand[0].mnemonic, "#-1");
-				break;
-			default:
-				return 0;
-		}
-	} else {
-		switch(d->as){
-			case 0:
-				strcpy(disasm->operand[0].mnemonic, src_reg);
-				disasm->operand[0].type = DISASM_OPERAND_REGISTER_TYPE;
-				break;
-			case 1:
-				sprintf(disasm->operand[0].mnemonic, "0x%x(%s)", w1, src_reg);
-				disasm->operand[1].type = DISASM_OPERAND_RELATIVE | DISASM_OPERAND_MEMORY_TYPE;
-				len += 2;
-				break;
-			case 2:
-				sprintf(disasm->operand[0].mnemonic, "@%s", src_reg);
-				disasm->operand[1].type = DISASM_OPERAND_MEMORY_TYPE;
-				break;
-			case 3:
-				sprintf(disasm->operand[0].mnemonic, "@%s+", src_reg);
-				disasm->operand[1].type = DISASM_OPERAND_MEMORY_TYPE;
-				break;
-			default:
-				return 0;
-		}
-	}
-	
-	if(d->ad == 0){
-		strcpy(disasm->operand[1].mnemonic, dst_reg);
-		disasm->operand[1].type = DISASM_OPERAND_REGISTER_TYPE;
-	} else {
-		int disp;
-		if(len == 2){
-			disp = w1;
-		} else {
-			disp = w2;
-		}
-		sprintf(disasm->operand[1].mnemonic, "0x%x(%s)", disp, src_reg);
-		disasm->operand[1].type = DISASM_OPERAND_RELATIVE | DISASM_OPERAND_REGISTER_TYPE;
-		len += 2;
-	}
-	return len;
-}
-
 - (int)disassembleSingleInstruction:(DisasmStruct *)disasm usingProcessorMode:(NSUInteger)mode {
-	struct msp_inst inst;
-	uint16_t w0, w1, w2;
-
-	w0 = disasm->bytes[0] | disasm->bytes[1] << 8;
-
-	inst = decode_instruction(w0);
-
-	if(inst.format == FMT_SINGLE){
-		struct single *s;
-		int opcode;
+	struct instruction inst;
+	int len, i;
+	
+	len = unpack_instruction(disasm->bytes, disasm->bytes+6, &inst);
+	
+	if(len % 2 != 0){
+		NSLog(@"WTF??");
+	}
+	
+	if(0 < len){
+		strcpy(disasm->instruction.mnemonic, lookup_mnemonic_for_operation(inst.operation));
 		
-		s = &inst.single;
-		opcode = s->opcode & 7;
-		if(opcode < 7){
-			if(opcode != 6){
-				if((opcode & 1) == 0){
-					if(s->ad != 1){
-						return single_fmt(disasm, s, 0);
-					} else {
-						w1 = disasm->bytes[2] | disasm->bytes[3]<<8;
-						return single_fmt(disasm, s, w1);
-					}
-				} else {
-					if(s->bw == 0){
-						if(s->ad != 1){
-							return single_fmt(disasm, s, 0);
-						} else {
-							w1 = disasm->bytes[2] | disasm->bytes[3]<<8;
-							return single_fmt(disasm, s, w1);
-						}
-					} else {
-						return 0;
-					}
-				}
-			} else {
-				if(s->bw == 0 && s->ad == 0 && s->reg == 0){
-					strcpy(disasm->instruction.mnemonic, "reti");
-					disasm->instruction.branchType = DISASM_BRANCH_RET;
-					return 2;
-				} else {
-					return 0;
-				}
-			}
-			
-		} else {
-			return 0;
+		switch(inst.operation){
+			case OPER_CALL:
+				disasm->instruction.branchType = DISASM_BRANCH_CALL;
+				break;
+			case OPER_JNE:
+				disasm->instruction.branchType = DISASM_BRANCH_JNE;
+				break;
+			case OPER_JEQ:
+				disasm->instruction.branchType = DISASM_BRANCH_JE;
+				break;
+			case OPER_JNC:
+				disasm->instruction.branchType = DISASM_BRANCH_JNC;
+				break;
+			case OPER_JC:
+				disasm->instruction.branchType = DISASM_BRANCH_JC;
+				break;
+			case OPER_JN:
+				disasm->instruction.branchType = DISASM_BRANCH_JL;
+				break;
+			case OPER_JGE:
+				disasm->instruction.branchType = DISASM_BRANCH_JGE;
+				break;
+			case OPER_JL:
+				disasm->instruction.branchType = DISASM_BRANCH_JL;
+				break;
+			case OPER_JMP:
+				disasm->instruction.branchType = DISASM_BRANCH_NONE;
+				break;
+			case OPER_BR:
+				disasm->instruction.branchType = DISASM_BRANCH_JMP;
+				break;
+			case OPER_RETI:
+			case OPER_RET:
+				disasm->instruction.branchType = DISASM_BRANCH_RET;
+				break;
+			default:
+				disasm->instruction.branchType = DISASM_BRANCH_NONE;
+				break;
 		}
-	} else if(inst.format == FMT_DOUBLE){
-		struct double_ *d = &inst.double_;
-		if(d->opcode < 4){
-			return 0;
-		} else {
-			if(d->as == 1 && d->ad == 1){
-				w1 = disasm->bytes[2] | disasm->bytes[3]<<8;
-				w2 = disasm->bytes[4] | disasm->bytes[5]<<8;
-			} else if(d->as == 1 || d->ad == 1){
-				w1 = disasm->bytes[2] | disasm->bytes[3]<<8;
-				w2 = disasm->bytes[4] | disasm->bytes[5]<<8;
-			} else {
-				w1 = w2 = 0;
+		
+		for(i = 0; i < inst.noperands; i++){
+			string_for_operand(inst.operands[i], disasm->operand[i].mnemonic);
+			switch(inst.operands[i].mode){
+				case OPMODE_REGISTER:
+					disasm->operand[i].type = DISASM_OPERAND_REGISTER_TYPE;
+					disasm->operand[i].accessMode = DISASM_ACCESS_NONE;
+					break;
+
+				case OPMODE_INDEXED:
+					disasm->operand[i].type = DISASM_OPERAND_RELATIVE;
+					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
+					break;
+					
+				case OPMODE_SYMBOLIC:
+					disasm->operand[i].type = DISASM_OPERAND_RELATIVE;
+					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
+					break;
+				
+				case OPMODE_ABSOLUTE:
+					disasm->operand[i].type = DISASM_OPERAND_ABSOLUTE;
+					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
+					break;
+				case OPMODE_INDIRECT_REGISTER:
+					disasm->operand[i].type = DISASM_OPERAND_RELATIVE;
+					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
+					break;
+				case OPMODE_INDIRECT_AUTOINC:
+					disasm->operand[i].type = DISASM_OPERAND_RELATIVE;
+					disasm->operand[i].accessMode = DISASM_ACCESS_READ;
+					break;
+				case OPMODE_IMMEDIATE:
+					disasm->operand[i].type = DISASM_OPERAND_CONSTANT_TYPE;
+					disasm->operand[i].accessMode = DISASM_ACCESS_NONE;
+					break;
+				case OPMODE_JUMP:
+					//disasm->instruction.addressValue = disasm->virtualAddr + inst.operands[i].offset;
+					disasm->operand[0].type = DISASM_OPERAND_CONSTANT_TYPE | DISASM_OPERAND_RELATIVE;
+					disasm->operand[0].size = 16;
+					disasm->operand[i].immediateValue = disasm->instruction.addressValue;
+					sprintf(disasm->operand[i].mnemonic, "#0x%llx", disasm->virtualAddr + inst.operands[i].offset);
+					break;
+					/*if(inst.jump.condition == 7){
+					 strcpy(disasm->instruction.mnemonic, "jmp");
+					 disasm->instruction.branchType = DISASM_BRANCH_JMP;
+					 
+					 disasm->instruction.addressValue = (disasm->virtualAddr + inst.jump.offset * 2) & 0xffff;
+					 disasm->operand[0].type = DISASM_OPERAND_CONSTANT_TYPE | DISASM_OPERAND_RELATIVE;
+					 disasm->operand[0].immediateValue = disasm->instruction.addressValue;
+					 
+					 if(0 <= inst.jump.offset){
+					 sprintf(disasm->operand[0].mnemonic, "#0x%x", inst.jump.offset * 2);
+					 } else {
+					 sprintf(disasm->operand[0].mnemonic, "#-0x%x", inst.jump.offset * 2);
+					 }
+					 return 2;
+					 } else {
+					 */
+					
+					
+					
 			}
-			return double_fmt(disasm, d, w1, w2);
 		}
-	} else if(inst.format == FMT_JUMP){
-		if(inst.jump.condition == 7){
-			strcpy(disasm->instruction.mnemonic, "jmp");
-			disasm->instruction.branchType = DISASM_BRANCH_JMP;
-
-			disasm->instruction.addressValue = (disasm->virtualAddr + inst.jump.offset * 2) & 0xffff;
-			disasm->operand[0].type = DISASM_OPERAND_CONSTANT_TYPE | DISASM_OPERAND_RELATIVE;
-			disasm->operand[0].immediateValue = disasm->instruction.addressValue;
-
-			if(0 <= inst.jump.offset){
-				sprintf(disasm->operand[0].mnemonic, "#0x%x", inst.jump.offset * 2);
-			} else {
-				sprintf(disasm->operand[0].mnemonic, "#-0x%x", inst.jump.offset * 2);
-			}
-			return 2;
-		} else {
-			return 0;
-		}
-
+		return len;
 	} else {
-		return 0;
+		return DISASM_UNKNOWN_OPCODE;
 	}
 }
 

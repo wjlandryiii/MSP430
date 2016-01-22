@@ -207,7 +207,11 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 				p += 2;
 				len += 2;
 				inst.noperands = 1;
-				inst.operands[0] = indexed_operand(reg+1, w1);
+				if(reg == 0){
+					inst.operands[0] = symbolic_operand(w1);
+				} else {
+					inst.operands[0] = indexed_operand(reg+1, w1);
+				}
 				*out = inst;
 				return len;
 			} else if(ad == 2){
@@ -229,7 +233,7 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 					p += 2;
 					len += 2;
 					inst.noperands = 1;
-					inst.operands[0] = symbolic_operand(w1);
+					inst.operands[0] = immediate_operand(w1);
 					*out = inst;
 					return len;
 				}
