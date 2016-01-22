@@ -40,7 +40,7 @@ struct instruction {
 	struct operand operands[2];
 };
 
-int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out);
+int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruction *out);
 int string_for_operand(struct operand operand, char *out);
 void disassemble_instruction(struct instruction inst, char *out);
 

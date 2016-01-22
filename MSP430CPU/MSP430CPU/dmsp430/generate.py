@@ -28,6 +28,10 @@ operations = [
         "bis",
         "xor",
         "and",
+        "nop",
+        "br",
+        "ret",
+        "pop",
 ]
 
 registers = [

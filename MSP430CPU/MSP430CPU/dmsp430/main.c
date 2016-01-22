@@ -107,7 +107,26 @@ void test_inst_bin(){
 
 int main(int argc, char *argv[]){
 
-	test_inst_bin();
+	//test_inst_bin();
+	//
+	
+	/*
+	int jz_condition = 1;
+	int jmp_condition = 7;
+
+	printf("jz  %02x\n", encode_jump(jz_condition, ((0x4402 - 0x442e) - 2) >> 1));
+	printf("jmp %02x\n", encode_jump(jmp_condition, ((0x4406 - 0x4430) - 2) >> 1));
+	*/
+
+	uint8_t buff[6] = {0};
+
+	buff[0] = 0x9f;
+	buff[1] = 0x4f;
+
+	struct instruction inst;
+
+	unpack_instruction(buff, buff+6, &inst);
+
 
 	return 0;
 }

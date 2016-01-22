@@ -33,6 +33,10 @@ enum {
 	OPER_BIS,
 	OPER_XOR,
 	OPER_AND,
+	OPER_NOP,
+	OPER_BR,
+	OPER_RET,
+	OPER_POP,
 };
 
 enum {

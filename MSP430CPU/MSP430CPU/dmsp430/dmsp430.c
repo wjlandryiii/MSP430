@@ -116,27 +116,17 @@ static int reg_for_single(uint16_t w0){
 	return (w0 & 0x000f);
 }
 
-static int single_has_extra_word(int ad, int reg){
-	if(reg == 0 && ad == 3){
-		return 1;
-	} else if(reg == 3 && ad == 1){
-		return 1;
-	} else {
-		return 0;
-	}
-}
 
-int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out){
-	uint16_t w0, w1, w2;
-	uint16_t prefix;
+int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruction *out){
+	uint16_t w0, w1;
 
 	struct instruction inst = {0};
-	uint8_t *p;
+	const uint8_t *p;
 	int len;
 
 	p = start;
 
-	if(end <= p+2){ return -1; } // ran out of input
+	if(end < p+2){ return -1; } // ran out of input
 	w0 = p[0] | p[1] << 8;
 	p += 2;
 	len = 2;
@@ -210,7 +200,7 @@ int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out){
 				*out = inst;
 				return len;
 			} else if(ad == 1){
-				if(end <= p+2){
+				if(end < p+2){
 					return 0;
 				}
 				w1 = p[0] | p[1] << 8;
@@ -232,7 +222,7 @@ int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out){
 					*out = inst;
 					return len;
 				} else {
-					if(end <= p+2){
+					if(end < p+2){
 						return 0;
 					}
 					w1 = p[0] | p[1] << 8;
@@ -326,7 +316,7 @@ int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out){
 		} else if(as == 1){
 			if(src == 2){
 				inst.noperands = 2;
-				if(end <= p+2){
+				if(end < p+2){
 					return 0;
 				}
 				w1 = p[0] | p[1] << 8;
@@ -339,7 +329,7 @@ int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out){
 				inst.operands[0] = immediate_operand(1);
 			} else {
 				inst.noperands = 2;
-				if(end <= p+2){
+				if(end < p+2){
 					return 0;
 				}
 				w1 = p[0] | p[1] << 8;
@@ -352,13 +342,16 @@ int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out){
 			if(src == 2){
 				inst.noperands = 2;
 				inst.operands[0] = immediate_operand(4);
+			} else if(src == 3){
+				inst.noperands = 2;
+				inst.operands[0] = immediate_operand(2);
 			} else {
 				inst.noperands = 2;
 				inst.operands[0] = indirect_register_operand(src+1);
 			}
 		} else if(as == 3){
 			if(src == 0){
-				if(end <= p+2){
+				if(end < p+2){
 					return 0;
 				}
 				w1 = p[0] | p[1] << 8;
@@ -366,7 +359,7 @@ int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out){
 				len += 2;
 				ate_w1 = 0;
 				inst.noperands = 2;
-				inst.operands[0] = symbolic_operand(w1);
+				inst.operands[0] = immediate_operand(w1);
 			} else if(src == 2){
 				inst.noperands = 2;
 				inst.operands[0] = immediate_operand(8);
@@ -386,7 +379,7 @@ int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out){
 			inst.operands[1] = reg_operand(dst+1);
 		} else {
 			inst.noperands = 2;
-			if(end <= p+2){
+			if(end < p+2){
 				return 0;
 			}
 			w1 = p[0] | p[1] << 8;
@@ -398,6 +391,34 @@ int unpack_instruction(uint8_t *start, uint8_t *end, struct instruction *out){
 			} else {
 				inst.operands[1] = indexed_operand(dst+1, w1);
 			}
+		}
+
+		// EMULATED INSTRUCTION FIXUPS
+		//
+		if(inst.operation == OPER_MOV
+				&& inst.operands[0].mode == OPMODE_IMMEDIATE
+				&& inst.operands[1].mode == OPMODE_REGISTER
+				&& inst.operands[1].reg == REG_CG){
+			inst.operation = OPER_NOP;
+			inst.noperands = 0;
+		}
+		if(inst.operation == OPER_MOV
+				&& inst.operands[1].mode == OPMODE_REGISTER
+				&& inst.operands[1].reg == REG_PC){
+			if(inst.operands[0].mode == OPMODE_INDIRECT_AUTOINC && inst.operands[0].reg == REG_SP){
+				inst.operation = OPER_RET;
+				inst.noperands = 0;
+			} else {
+				inst.operation = OPER_BR;
+				inst.noperands = 1;
+			}
+		}
+		if(inst.operation == OPER_MOV
+				&& inst.operands[0].mode == OPMODE_INDIRECT_AUTOINC
+				&& inst.operands[0].reg == REG_SP){
+			inst.operation = OPER_POP;
+			inst.noperands = 1;
+			inst.operands[0] = inst.operands[1];
 		}
 
 		*out = inst;
@@ -424,14 +445,14 @@ int string_for_operand(struct operand operand, char *out){
 		return 0;
 	case OPMODE_INDEXED:
 		reg_str = lookup_reg_string(operand.reg);
-		sprintf(out, "0x%x(%s)", operand.disp, reg_str);
+		sprintf(out, "0x%x(%s)", operand.disp & 0xffff, reg_str);
 		return 0;
 	case OPMODE_SYMBOLIC:
 		reg_str = lookup_reg_string(REG_PC);
-		sprintf(out, "0x%x(%s)", operand.disp, reg_str);
+		sprintf(out, "0x%x(%s)", operand.disp & 0xffff, reg_str);
 		return 0;
 	case OPMODE_ABSOLUTE:
-		sprintf(out, "&0x%x", operand.addr);
+		sprintf(out, "&0x%x", operand.addr & 0xffff);
 		return 0;
 	case OPMODE_INDIRECT_REGISTER:
 		reg_str = lookup_reg_string(operand.reg);
@@ -442,13 +463,13 @@ int string_for_operand(struct operand operand, char *out){
 		sprintf(out, "@%s+", reg_str);
 		return 0;
 	case OPMODE_IMMEDIATE:
-		sprintf(out, "#0x%x", operand.imm);
+		sprintf(out, "#0x%x", operand.imm & 0xffff);
 		return 0;
 	case OPMODE_JUMP:
 		if(0 <= operand.offset){
-			sprintf(out, "$+0x%x", operand.offset);
+			sprintf(out, "$+0x%x", operand.offset & 0xffff);
 		} else {
-			sprintf(out, "$-0x%x", -operand.offset);
+			sprintf(out, "$-0x%x", (-operand.offset) & 0xffff);
 		}
 		return 0;
 	default:

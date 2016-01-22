@@ -32,6 +32,10 @@ char *lookup_mnemonic_for_operation(int operation){
 		case OPER_BIS:	return "bis";
 		case OPER_XOR:	return "xor";
 		case OPER_AND:	return "and";
+		case OPER_NOP:	return "nop";
+		case OPER_BR:	return "br";
+		case OPER_RET:	return "ret";
+		case OPER_POP:	return "pop";
 		default:	return 0;
 	}
 }
