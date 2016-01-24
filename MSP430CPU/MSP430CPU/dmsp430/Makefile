@@ -21,3 +21,10 @@ tests.o: tests.c
 
 tests: tests.o dmsp430.o generated.o
 	gcc -g -o $@ $^
+
+.PHONY: clean
+
+clean:
+	rm -f *.o
+	rm -f tests
+	rm -f main

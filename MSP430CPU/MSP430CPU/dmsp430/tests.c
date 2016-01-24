@@ -213,6 +213,16 @@ struct test_case test_cases[] = {
 		"jeq      $+0x50",
 		{0x27, 0x24, 0x00, 0x00, 0x00, 0x00}, 2,
 		{OPER_JEQ, OPSIZE_16, 1, { {OPMODE_JUMP, REG_UNKNOWN, 0x50}, }}
+	},{
+		"ret",
+		"mov      @sp+, pc",
+		{0x30, 0x41, 0x00, 0x00, 0x00, 0x00}, 2,
+		{OPER_MOV, OPSIZE_16, 2,
+			{
+				{OPMODE_INDIRECT_AUTOINC, REG_SP, 0},
+				{OPMODE_REGISTER, REG_PC, 0},
+			}
+		}
 	}
 };
 
@@ -238,21 +248,24 @@ void test_unpack(void){
 	struct test_case c;
 	struct instruction inst;
 	int i;
+	int len;
 
 	for(i = 0; i < sizeof(test_cases) / sizeof(*test_cases); i++){
 		c = test_cases[i];
 		memset(&inst, 0, sizeof(inst));
 		printf("test: %2d %-32s %-32s", i, c.test_name, c.assembly);
 		fflush(stdout);
-		unpack_instruction(c.packed, c.packed+6, &inst);
-		if(memcmp(&c.unpacked, &inst, sizeof(inst)) != 0){
+		len = unpack_instruction(c.packed, c.packed+6, &inst);
+		if(memcmp(&c.unpacked, &inst, sizeof(inst)) != 0 || len != c.len){
 			printf("FAIL\n");
 			printf("===========================================\n");
 			printf("Test Instruction:\n");
 			print_instruction(c.unpacked);
+			printf("LENGTH: %d\n", c.len);
 			printf("===========================================\n");
 			printf("Resulting instruction:\n");
 			print_instruction(inst);
+			printf("LENGTH: %d\n", len);
 			abort();
 		} else {
 			printf("OK\n");

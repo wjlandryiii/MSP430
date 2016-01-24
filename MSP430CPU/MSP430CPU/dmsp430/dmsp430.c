@@ -163,12 +163,10 @@ static int decode_first_operand(int mode, int reg, int w1, struct operand *out){
 	case MODE_INDIRECT_REGISTER:
 		operand.mode = OPMODE_INDIRECT_REGISTER;
 		operand.reg = reg_const_for_encoded(reg);
-		operand.constant = w1;
 		break;
 	case MODE_INDIRECT_AUTOINC:
 		operand.mode = OPMODE_INDIRECT_AUTOINC;
 		operand.reg = reg_const_for_encoded(reg);
-		operand.constant = w1;
 		break;
 	case MODE_IMMEDIATE:
 		operand.mode = OPMODE_IMMEDIATE;
@@ -394,8 +392,6 @@ static int instruction_mode_has_encoded_word(int mode){
 		case MODE_INDEXED:
 		case MODE_SYMBOLIC:
 		case MODE_ABSOLUTE:
-		case MODE_INDIRECT_REGISTER:
-		case MODE_INDIRECT_AUTOINC:
 		case MODE_IMMEDIATE:
 			return 1;
 		default:
@@ -408,8 +404,6 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 	struct instruction inst = {0};
 	uint16_t w0, w1, w2;
 	int format;
-	uint16_t mask;
-	int i;
 	const uint8_t *p;
 
 	p = start;
@@ -425,7 +419,6 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 	if(format == FMT_SINGLE){
 		int opcode, bw, ad, reg;
 		int mode;
-		char *mode_str;
 		int operation, noperands;
 
 		unpack_single(w0, &opcode, &bw, &ad, &reg);
@@ -458,11 +451,10 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 		if(out){
 			*out = inst;
 		}
-		return p - start;
+		return (int)(p - start);
 	} else if(format == FMT_DOUBLE){
 		int opcode, src, ad, bw, as, dst;
 		int src_mode, dst_mode;
-		char *src_mode_str, *dst_mode_str;
 		int operation, noperands;
 
 		unpack_double(w0, &opcode, &src, &ad, &bw, &as, &dst);
@@ -485,6 +477,8 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 			}
 			w1 = p[0] | p[1]<<8;
 			p += 2;
+		} else {
+			w1 = 0;
 		}
 
 		if(instruction_mode_has_encoded_word(dst_mode)){
@@ -493,6 +487,8 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 			}
 			w2 = p[0] | p[1]<<8;
 			p += 2;
+		} else {
+			w2 = 0;
 		}
 
 		if(decode_first_operand(src_mode, src, w1, &inst.operands[0]) != 0){
@@ -506,7 +502,7 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 		if(out){
 			*out = inst;
 		}
-		return p - start;
+		return (int)(p - start);
 
 	} else if(format == FMT_JUMP){
 		int opcode, condition, offset;
@@ -531,13 +527,10 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 		if(out){
 			*out = inst;
 		}
-		return p - start;
+		return (int)(p - start);
 	} else {
 		return 0;
 	}
-
-	*out = inst;
-	return p - start;
 }
 
 int string_for_operand(struct operand operand, char *out){
