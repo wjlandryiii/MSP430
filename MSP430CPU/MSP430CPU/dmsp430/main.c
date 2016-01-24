@@ -10,15 +10,9 @@
 
 #include "dmsp430.h"
 
-#include "unpack.c"
-
-#include "tests.c"
-
 
 
 int main(int argc, char *argv[]){
-	test_unpack();
-	puts("");
-	test_disassemble();
+
 	return 0;
 }

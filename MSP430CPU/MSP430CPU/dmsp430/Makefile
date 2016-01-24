@@ -1,4 +1,4 @@
-all: main
+all: main tests
 
 
 generated.%: generate.py
@@ -14,4 +14,10 @@ main.o: main.c dmsp430.h generated.h
 	gcc -g -c -o $@ $<
 
 main: main.o dmsp430.o generated.o
+	gcc -g -o $@ $^
+
+tests.o: tests.c
+	gcc -g -c -o $@ $<
+
+tests: tests.o dmsp430.o generated.o
 	gcc -g -o $@ $^

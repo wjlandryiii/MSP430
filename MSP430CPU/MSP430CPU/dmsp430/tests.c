@@ -2,6 +2,13 @@
  * Copyright 2016 Joseph Landry All Rights Reserved
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+#include "dmsp430.h"
+#include "generated.h"
 
 struct test_case {
 	char *test_name;
@@ -237,7 +244,7 @@ void test_unpack(void){
 		memset(&inst, 0, sizeof(inst));
 		printf("test: %2d %-32s %-32s", i, c.test_name, c.assembly);
 		fflush(stdout);
-		unpack_instructionB(c.packed, c.packed+6, &inst);
+		unpack_instruction(c.packed, c.packed+6, &inst);
 		if(memcmp(&c.unpacked, &inst, sizeof(inst)) != 0){
 			printf("FAIL\n");
 			printf("===========================================\n");
@@ -290,4 +297,11 @@ void test_disassemble(void){
 			printf("OK\n");
 		}
 	}
+}
+
+int main(int argc, char *argv[]){
+	test_unpack();
+	puts("");
+	test_disassemble();
+	return 0;
 }

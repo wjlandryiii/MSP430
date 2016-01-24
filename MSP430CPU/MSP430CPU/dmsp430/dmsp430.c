@@ -2,7 +2,13 @@
  * Copyright 2016 Joseph Landry All Rights Reserved
  */
 
-int reg_const_for_encoded(int reg){
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+
+#include "dmsp430.h"
+
+static int reg_const_for_encoded(int reg){
 	return reg + 1;
 }
 
@@ -23,7 +29,7 @@ enum {
 	MODE_IMMEDIATE_ffff,
 };
 
-int double_src_operand_mode(int as, int src){
+static int double_src_operand_mode(int as, int src){
 	if(as == 0){
 		if(src == 2){
 			return MODE_REGISTER_DIRECT;
@@ -65,7 +71,7 @@ int double_src_operand_mode(int as, int src){
 	}
 }
 
-int double_dst_operand_mode(int ad, int dst){
+static int double_dst_operand_mode(int ad, int dst){
 	if(ad == 0){
 		return MODE_REGISTER_DIRECT;
 	} else if(ad == 1){
@@ -88,7 +94,7 @@ enum {
 	FMT_JUMP,
 };
 
-int format_for_instruction(uint16_t w0){
+static int format_for_instruction(uint16_t w0){
 	if((w0 & 0xf800) == 0x1000){
 		return FMT_SINGLE;
 	} else if(0x4000 <= (w0 & 0xf000)){
@@ -100,7 +106,7 @@ int format_for_instruction(uint16_t w0){
 	}
 }
 
-int bits(uint16_t word, int msb, int lsb){
+static int bits(uint16_t word, int msb, int lsb){
 	uint16_t mask;
 	int nbits;
 
@@ -111,14 +117,14 @@ int bits(uint16_t word, int msb, int lsb){
 	return (word >> lsb) & mask;
 }
 
-void unpack_single(uint16_t w0, int *opcode, int *bw, int *ad, int *reg){
+static void unpack_single(uint16_t w0, int *opcode, int *bw, int *ad, int *reg){
 	*opcode = bits(w0, 15, 7);
 	*bw     = bits(w0,  6, 6);
 	*ad     = bits(w0,  5, 4);
 	*reg    = bits(w0,  3, 0);
 }
 
-void unpack_double(uint16_t w0, int *opcode, int *src, int *ad, int *bw, int *as, int *dst){
+static void unpack_double(uint16_t w0, int *opcode, int *src, int *ad, int *bw, int *as, int *dst){
 	*opcode = bits(w0, 15, 12);
 	*src    = bits(w0, 11,  8);
 	*ad     = bits(w0,  7,  7);
@@ -127,13 +133,13 @@ void unpack_double(uint16_t w0, int *opcode, int *src, int *ad, int *bw, int *as
 	*dst    = bits(w0,  3,  0);
 }
 
-void unpack_jump(uint16_t w0, int *opcode, int *condition, int *offset){
+static void unpack_jump(uint16_t w0, int *opcode, int *condition, int *offset){
 	*opcode    = bits(w0, 15, 13);
 	*condition = bits(w0, 12, 10);
 	*offset    = bits(w0,  9,  0);
 }
 
-int decode_first_operand(int mode, int reg, int w1, struct operand *out){
+static int decode_first_operand(int mode, int reg, int w1, struct operand *out){
 	struct operand operand = {0};
 
 	switch(mode){
@@ -201,7 +207,7 @@ int decode_first_operand(int mode, int reg, int w1, struct operand *out){
 	return 0;
 }
 
-int decode_second_operand(int mode, int reg, uint16_t w1, struct operand *out_operand){
+static int decode_second_operand(int mode, int reg, uint16_t w1, struct operand *out_operand){
 	struct operand operand = {0};
 
 	switch(mode){
@@ -232,7 +238,7 @@ int decode_second_operand(int mode, int reg, uint16_t w1, struct operand *out_op
 	return 0;
 }
 
-int single_operation_noperands(int opcode, int bw, int as, int reg, int *out_operation, int *out_noperands){
+static int single_operation_noperands(int opcode, int bw, int as, int reg, int *out_operation, int *out_noperands){
 	int operation = OPER_UNKNOWN;
 	int noperands = 0;
 
@@ -290,7 +296,7 @@ int single_operation_noperands(int opcode, int bw, int as, int reg, int *out_ope
 	return 0;
 }
 
-int double_operation_nopcodes(int opcode, int *out_operation, int *out_noperands){
+static int double_operation_nopcodes(int opcode, int *out_operation, int *out_noperands){
 	int operation = OPER_UNKNOWN;
 	int noperands = 0;
 
@@ -353,7 +359,7 @@ int double_operation_nopcodes(int opcode, int *out_operation, int *out_noperands
 	return 0;
 }
 
-int jump_operation_for_condition(int condition, int *out_operation){
+static int jump_operation_for_condition(int condition, int *out_operation){
 	int operation;
 	switch(condition){
 		case 0: operation = OPER_JNE; break;
@@ -372,7 +378,7 @@ int jump_operation_for_condition(int condition, int *out_operation){
 	return 0;
 }
 
-int jump_fixup_offset(uint16_t offset, uint16_t *out_offset){
+static int jump_fixup_offset(uint16_t offset, uint16_t *out_offset){
 	uint16_t fixed;
 
 	fixed = ((int16_t) ((offset & 0x3ff) << 6)) >> 6;
@@ -383,7 +389,7 @@ int jump_fixup_offset(uint16_t offset, uint16_t *out_offset){
 	return 0;
 }
 
-int instruction_mode_has_encoded_word(int mode){
+static int instruction_mode_has_encoded_word(int mode){
 	switch(mode){
 		case MODE_INDEXED:
 		case MODE_SYMBOLIC:
@@ -398,7 +404,7 @@ int instruction_mode_has_encoded_word(int mode){
 }
 
 
-int unpack_instructionB(const uint8_t *start, const uint8_t *end, struct instruction *out){
+int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruction *out){
 	struct instruction inst = {0};
 	uint16_t w0, w1, w2;
 	int format;
@@ -532,4 +538,77 @@ int unpack_instructionB(const uint8_t *start, const uint8_t *end, struct instruc
 
 	*out = inst;
 	return p - start;
+}
+
+int string_for_operand(struct operand operand, char *out){
+	char *reg_str;
+
+	switch(operand.mode){
+	case OPMODE_REGISTER:
+		reg_str = lookup_reg_string(operand.reg);
+		strcpy(out, reg_str);
+		return 0;
+	case OPMODE_INDEXED:
+		reg_str = lookup_reg_string(operand.reg);
+		sprintf(out, "0x%x(%s)", operand.constant & 0xffff, reg_str);
+		return 0;
+	case OPMODE_SYMBOLIC:
+		if(0 <= (uint16_t)operand.constant){
+			sprintf(out, "$+0x%x", operand.constant);
+		} else {
+			sprintf(out, "$-0x%x", (-operand.constant));
+		}
+		return 0;
+	case OPMODE_ABSOLUTE:
+		sprintf(out, "&0x%x", operand.constant & 0xffff);
+		return 0;
+	case OPMODE_INDIRECT_REGISTER:
+		reg_str = lookup_reg_string(operand.reg);
+		sprintf(out, "@%s", reg_str);
+		return 0;
+	case OPMODE_INDIRECT_AUTOINC:
+		reg_str = lookup_reg_string(operand.reg);
+		sprintf(out, "@%s+", reg_str);
+		return 0;
+	case OPMODE_IMMEDIATE:
+		sprintf(out, "#0x%x", operand.constant & 0xffff);
+		return 0;
+	case OPMODE_JUMP:
+		if(0 <= (int16_t)operand.constant){
+			sprintf(out, "$+0x%x", operand.constant & 0xffff);
+		} else {
+			sprintf(out, "$-0x%x", (-operand.constant) & 0xffff);
+		}
+		return 0;
+	default:
+		out[0] = 0;
+		return -1;
+	}
+}
+
+void disassemble_instruction(struct instruction inst, char *out){
+	char mnemonic[16];
+	char operand[2][16];
+	int i;
+
+	strcpy(mnemonic, lookup_mnemonic_for_operation(inst.operation));
+	if(inst.operand_size == OPSIZE_8){
+		strcat(mnemonic, ".b");
+	}
+
+	for(i = 0; i < inst.noperands; i++){
+		string_for_operand(inst.operands[i], operand[i]);
+	}
+
+	if(inst.noperands == 0){
+		strcpy(out, mnemonic);
+	} else {
+		sprintf(out, "%-8s ", mnemonic);
+		for(i = 0; i < inst.noperands; i++){
+			strcat(out, operand[i]);
+			if(i + 1 != inst.noperands){
+				strcat(out, ", ");
+			}
+		}
+	}
 }
