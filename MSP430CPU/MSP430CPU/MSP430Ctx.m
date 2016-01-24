@@ -195,7 +195,7 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 	switch(inst->operation){
 		case OPER_BR:
 			*next = BAD_ADDRESS;
-			[branches addObject:[NSNumber numberWithUnsignedLongLong:inst->operands[0].imm]];
+			[branches addObject:[NSNumber numberWithUnsignedLongLong:inst->operands[0].constant]];
 			break;
 		case OPER_JMP:
 			*next = BAD_ADDRESS;
@@ -206,13 +206,17 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 		case OPER_JN:
 		case OPER_JGE:
 		case OPER_JL:
-			[branches addObject:[NSNumber numberWithUnsignedLongLong:disasm->virtualAddr + inst->operands[0].offset]];
+			if(0 <= (int16_t)inst->operands[0].constant){
+				[branches addObject:[NSNumber numberWithUnsignedLongLong:disasm->virtualAddr + inst->operands[0].constant]];
+			} else {
+				[branches addObject:[NSNumber numberWithUnsignedLongLong:disasm->virtualAddr - inst->operands[0].constant]];
+			}
 			break;
 		
 		case OPER_CALL:
 			//[calledAddresses addObject:[NSNumber numberWithUnsignedLongLong:inst->operands[0].addr]];
 			if(inst->operands[0].mode == OPMODE_IMMEDIATE){
-				unsigned long long callto = inst->operands[0].imm;
+				unsigned long long callto = inst->operands[0].constant;
 				[calledAddresses addObject:[NSNumber numberWithUnsignedLongLong:callto]];
 			}
 			break;
