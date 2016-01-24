@@ -102,11 +102,11 @@ struct test_case test_cases[] = {
 		}
 	},{
 		"double cg 0 to reg",
-		"mov      #0x0, r15",
+		"clr      r15",
 		{0x0f, 0x43, 0x00, 0x00, 0x00, 0x00}, 2,
-		{OPER_MOV, OPSIZE_16, 2, {
-						 {OPMODE_IMMEDIATE, REG_UNKNOWN, 0x0000},
+		{OPER_CLR, OPSIZE_16, 1, {
 						 {OPMODE_REGISTER, REG_R15, 0},
+						 {OPMODE_UNKNOWN, REG_UNKNOWN, 0x0000},
 					 }
 		}
 	},{
@@ -215,12 +215,37 @@ struct test_case test_cases[] = {
 		{OPER_JEQ, OPSIZE_16, 1, { {OPMODE_JUMP, REG_UNKNOWN, 0x50}, }}
 	},{
 		"ret",
-		"mov      @sp+, pc",
+		"ret",
 		{0x30, 0x41, 0x00, 0x00, 0x00, 0x00}, 2,
-		{OPER_MOV, OPSIZE_16, 2,
+		{OPER_RET, OPSIZE_16, 0,
 			{
-				{OPMODE_INDIRECT_AUTOINC, REG_SP, 0},
-				{OPMODE_REGISTER, REG_PC, 0},
+				{OPMODE_UNKNOWN, REG_UNKNOWN, 0},
+				{OPMODE_UNKNOWN, REG_UNKNOWN, 0},
+			}
+		}
+	},{
+		"branch emu",
+		"br       #0xaaaa",
+		{0x30, 0x40, 0xaa, 0xaa, 0x00, 0x00}, 4,
+		{OPER_BR, OPSIZE_16, 1, { {OPMODE_IMMEDIATE, REG_UNKNOWN, 0xaaaa}, }}
+	},{
+		"nop emu",
+		"nop",
+		{0x03, 0x43, 0x00, 0x00, 0x00, 0x00}, 2,
+		{OPER_NOP, OPSIZE_16, 0,
+			{
+				{OPMODE_UNKNOWN, REG_UNKNOWN, 0},
+				{OPMODE_UNKNOWN, REG_UNKNOWN, 0},
+			}
+		}
+	},{
+		"pop emu",
+		"pop      r15",
+		{0x3f, 0x41, 0x00, 0x00, 0x00, 0x00}, 2,
+		{OPER_POP, OPSIZE_16, 1,
+			{
+				{OPMODE_REGISTER, REG_R15, 0},
+				{OPMODE_UNKNOWN, REG_UNKNOWN, 0},
 			}
 		}
 	}
@@ -234,7 +259,7 @@ void print_instruction(struct instruction inst){
 	printf("operand size: %s\n", lookup_operand_size_const_name(inst.operand_size));
 	printf("   noperands: %d\n", inst.noperands);
 
-	for(i = 0; i < inst.noperands; i++){
+	for(i = 0; i < 2; i++){
 		printf("\toperand: %d\n", i);
 		printf("\t\t mode: %s\n", lookup_operand_mode_const_name(inst.operands[i].mode));
 		printf("\t\t  reg: %s\n", lookup_reg_const_name(inst.operands[i].reg));

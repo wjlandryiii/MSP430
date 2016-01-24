@@ -399,6 +399,60 @@ static int instruction_mode_has_encoded_word(int mode){
 	}
 }
 
+static void fix_emulated_instructions(struct instruction *i){
+	if(i->operation == OPER_MOV && i->noperands == 2 && i->operands[1].mode == OPMODE_REGISTER && i->operands[1].reg == REG_PC){
+		if(i->operands[0].mode == OPMODE_INDIRECT_AUTOINC && i->operands[0].reg == REG_SP){
+			i->operation = OPER_RET;
+			i->noperands = 0;
+			i->operands[0].mode = MODE_UNKNOWN;
+			i->operands[0].reg = REG_UNKNOWN;
+			i->operands[0].constant = 0;
+			i->operands[1].mode = MODE_UNKNOWN;
+			i->operands[1].reg = REG_UNKNOWN;
+			i->operands[1].constant = 0;
+			return;
+		} else {
+			i->operation = OPER_BR;
+			i->noperands = 1;
+			i->operands[1].mode = MODE_UNKNOWN;
+			i->operands[1].reg = REG_UNKNOWN;
+			i->operands[1].constant = 0;
+			return;
+		}
+	}
+
+	if(i->operation == OPER_MOV && i->noperands == 2 && i->operands[1].mode == OPMODE_REGISTER && i->operands[1].reg == REG_CG){
+		i->operation = OPER_NOP;
+		i->noperands = 0;
+		i->operands[0].mode = MODE_UNKNOWN;
+		i->operands[0].reg = REG_UNKNOWN;
+		i->operands[0].constant = 0;
+		i->operands[1].mode = MODE_UNKNOWN;
+		i->operands[1].reg = REG_UNKNOWN;
+		i->operands[1].constant = 0;
+		return;
+	}
+
+	if(i->operation == OPER_MOV && i->noperands == 2 && i->operands[0].mode == OPMODE_INDIRECT_AUTOINC && i->operands[0].reg == REG_SP){
+		i->operation = OPER_POP;
+		i->noperands = 1;
+		i->operands[0] = i->operands[1];
+		i->operands[1].mode = MODE_UNKNOWN;
+		i->operands[1].reg = REG_UNKNOWN;
+		i->operands[1].constant = 0;
+	}
+
+	if(i->operation == OPER_MOV && i->noperands == 2 && i->operands[0].mode == OPMODE_IMMEDIATE && i->operands[0].constant == 0){
+		i->operation = OPER_CLR;
+		i->noperands = 1;
+		i->operands[0] = i->operands[1];
+		i->operands[1].mode = MODE_UNKNOWN;
+		i->operands[1].reg = REG_UNKNOWN;
+		i->operands[1].constant = 0;
+		return;
+	}
+}
+
 
 int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruction *out){
 	struct instruction inst = {0};
@@ -448,10 +502,6 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 				return 0;
 			}
 		}
-		if(out){
-			*out = inst;
-		}
-		return (int)(p - start);
 	} else if(format == FMT_DOUBLE){
 		int opcode, src, ad, bw, as, dst;
 		int src_mode, dst_mode;
@@ -498,12 +548,6 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 		if(decode_second_operand(dst_mode, dst, w2, &inst.operands[1]) != 0){
 			return 0;
 		}
-
-		if(out){
-			*out = inst;
-		}
-		return (int)(p - start);
-
 	} else if(format == FMT_JUMP){
 		int opcode, condition, offset;
 		int operation;
@@ -523,14 +567,16 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 		inst.noperands = 1;
 		inst.operands[0].mode = OPMODE_JUMP;
 		inst.operands[0].constant = fixed_offset;
-
-		if(out){
-			*out = inst;
-		}
-		return (int)(p - start);
 	} else {
 		return 0;
 	}
+
+	fix_emulated_instructions(&inst);
+
+	if(out){
+		*out = inst;
+	}
+	return (int)(p - start);
 }
 
 int string_for_operand(struct operand operand, char *out){

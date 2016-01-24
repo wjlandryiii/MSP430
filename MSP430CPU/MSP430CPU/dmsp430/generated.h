@@ -37,6 +37,7 @@ enum {
 	OPER_BR,
 	OPER_RET,
 	OPER_POP,
+	OPER_CLR,
 };
 
 enum {

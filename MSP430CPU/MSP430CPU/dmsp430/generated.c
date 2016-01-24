@@ -36,6 +36,7 @@ char *lookup_mnemonic_for_operation(int operation){
 		case OPER_BR:	return "br";
 		case OPER_RET:	return "ret";
 		case OPER_POP:	return "pop";
+		case OPER_CLR:	return "clr";
 		default:	return 0;
 	}
 }
@@ -95,6 +96,7 @@ char *lookup_operation_const_name(int operation){
 		case OPER_BR:	 return "OPER_BR";
 		case OPER_RET:	 return "OPER_RET";
 		case OPER_POP:	 return "OPER_POP";
+		case OPER_CLR:	 return "OPER_CLR";
 		default:	return "OPER_UNKNOWN";
 	}
 }

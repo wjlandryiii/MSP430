@@ -206,11 +206,7 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 		case OPER_JN:
 		case OPER_JGE:
 		case OPER_JL:
-			if(0 <= (int16_t)inst->operands[0].constant){
-				[branches addObject:[NSNumber numberWithUnsignedLongLong:disasm->virtualAddr + inst->operands[0].constant]];
-			} else {
-				[branches addObject:[NSNumber numberWithUnsignedLongLong:disasm->virtualAddr - inst->operands[0].constant]];
-			}
+			[branches addObject:[NSNumber numberWithUnsignedLongLong:disasm->virtualAddr + (int16_t)inst->operands[0].constant]];
 			break;
 		
 		case OPER_CALL:

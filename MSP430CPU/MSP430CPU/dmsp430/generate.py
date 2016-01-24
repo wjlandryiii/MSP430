@@ -32,6 +32,7 @@ operations = [
         "br",
         "ret",
         "pop",
+        "clr",
 ]
 
 registers = [
