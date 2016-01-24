@@ -6,31 +6,10 @@
 
 #include "generated.h"
 
-enum {
-	OPMODE_UNKNOWN,
-	OPMODE_REGISTER,
-	OPMODE_INDEXED,
-	OPMODE_SYMBOLIC,
-	OPMODE_ABSOLUTE,
-	OPMODE_INDIRECT_REGISTER,
-	OPMODE_INDIRECT_AUTOINC,
-	OPMODE_IMMEDIATE,
-	OPMODE_JUMP,
-};
-
 struct operand {
 	int mode;
-	int disp;
 	int reg;
-	int imm;
-	int addr;
-	int offset;
-};
-
-enum {
-	OPSIZE_UNKNOWN,
-	OPSIZE_8,
-	OPSIZE_16,
+	uint16_t constant;
 };
 
 struct instruction {

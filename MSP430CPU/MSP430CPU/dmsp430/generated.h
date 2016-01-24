@@ -59,6 +59,28 @@ enum {
 	REG_R15,
 };
 
+enum {
+	OPSIZE_UNKNOWN = 0,
+	OPSIZE_8,
+	OPSIZE_16,
+};
+
+enum {
+	OPMODE_UNKNOWN = 0,
+	OPMODE_REGISTER,
+	OPMODE_INDEXED,
+	OPMODE_SYMBOLIC,
+	OPMODE_ABSOLUTE,
+	OPMODE_INDIRECT_REGISTER,
+	OPMODE_INDIRECT_AUTOINC,
+	OPMODE_IMMEDIATE,
+	OPMODE_JUMP,
+};
+
 char *lookup_mnemonic_for_operation(int operation);
 char *lookup_reg_string(int reg);
+char *lookup_operation_const_name(int operation);
+char *lookup_operand_size_const_name(int size);
+char *lookup_operand_mode_const_name(int mode);
+char *lookup_reg_const_name(int reg);
 #endif

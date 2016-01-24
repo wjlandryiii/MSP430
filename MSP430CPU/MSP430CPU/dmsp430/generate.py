@@ -53,6 +53,23 @@ registers = [
         "r15",
 ]
 
+opsizes = [
+        "8",
+        "16",
+]
+
+
+opmodes = [
+        "register",
+        "indexed",
+        "symbolic",
+        "absolute",
+        "indirect_register",
+        "indirect_autoinc",
+        "immediate",
+        "jump"
+]
+
 
 def gen_enum(header_file, prefix, items):
     print >>header_file, "enum {"
@@ -69,6 +86,18 @@ def gen_lookup(header_file, source_file, fnname, argname,  prefix, items):
     for item in items:
         print >>source_file, '\t\tcase %s_%s:\treturn "%s";' % (prefix.upper(), item.upper(), item)
     print >>source_file, '\t\tdefault:\treturn 0;'
+    print >>source_file, "\t}"
+    print >>source_file, "}"
+    print >>source_file, ""
+
+
+def gen_lookup_const_string(header_file, source_file, fnname, argname, prefix, items):
+    print >>header_file, "char *%s(int %s);" % (fnname, argname)
+    print >>source_file, "char *%s(int %s){" % (fnname, argname)
+    print >>source_file, "\tswitch(%s){" % (argname, )
+    for item in items:
+        print >>source_file, '\t\tcase %s_%s:\t return "%s_%s";' % (prefix.upper(), item.upper(), prefix.upper(), item.upper())
+    print >>source_file, '\t\tdefault:\treturn "%s_UNKNOWN";' % (prefix.upper(), )
     print >>source_file, "\t}"
     print >>source_file, "}"
     print >>source_file, ""
@@ -90,9 +119,19 @@ with open("generated.h", "w") as header_file:
         gen_enum(header_file, "OPER", operations)
         gen_enum(header_file, "REG", registers)
 
+        gen_enum(header_file, "OPSIZE", opsizes)
+
+        gen_enum(header_file, "OPMODE", opmodes)
+
         gen_lookup(header_file, source_file, "lookup_mnemonic_for_operation", "operation", "OPER", operations)
         gen_lookup(header_file, source_file, "lookup_reg_string", "reg", "REG", registers)
 
+        gen_lookup_const_string(header_file, source_file, "lookup_operation_const_name", "operation", "OPER", operations)
+        gen_lookup_const_string(header_file, source_file, "lookup_operand_size_const_name", "size", "OPSIZE", opsizes)
+
+        gen_lookup_const_string(header_file, source_file, "lookup_operand_mode_const_name", "mode", "OPMODE", opmodes)
+
+        gen_lookup_const_string(header_file, source_file, "lookup_reg_const_name", "reg", "REG", registers)
         print >>header_file, "#endif"
 
 

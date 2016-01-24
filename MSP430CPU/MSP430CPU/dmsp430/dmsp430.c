@@ -22,7 +22,7 @@ static struct operand indexed_operand(int reg, int disp){
 
 	operand.mode = OPMODE_INDEXED;
 	operand.reg = reg;
-	operand.disp = disp;
+	operand.constant = disp;
 	return operand;
 }
 
@@ -30,7 +30,7 @@ static struct operand symbolic_operand(int disp){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_SYMBOLIC;
-	operand.disp = disp;
+	operand.constant = disp;
 	return operand;
 }
 
@@ -38,7 +38,7 @@ static struct operand absolute_operand(int addr){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_ABSOLUTE;
-	operand.addr = addr;
+	operand.constant = addr;
 	return operand;
 }
 
@@ -62,7 +62,7 @@ static struct operand immediate_operand(int imm){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_IMMEDIATE;
-	operand.imm = imm;
+	operand.constant = imm;
 	return operand;
 }
 
@@ -70,7 +70,7 @@ static struct operand jump_operand(int offset){
 	struct operand operand = {0};
 
 	operand.mode = OPMODE_JUMP;
-	operand.offset = offset;
+	operand.constant = offset;
 	return operand;
 }
 
@@ -196,36 +196,47 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 
 			if(ad == 0){
 				inst.noperands = 1;
-				inst.operands[0] = reg_operand(reg+1);
+				if(reg == 3){
+					inst.operands[0] = immediate_operand(0);
+				} else {
+					inst.operands[0] = reg_operand(reg+1);
+				}
 				*out = inst;
 				return len;
 			} else if(ad == 1){
-				if(end < p+2){
-					return 0;
-				}
-				w1 = p[0] | p[1] << 8;
-				p += 2;
-				len += 2;
 				inst.noperands = 1;
-				if(reg == 0){
-					inst.operands[0] = symbolic_operand(w1);
+				if(reg == 3){
+					inst.operands[0] = immediate_operand(1);
 				} else {
-					inst.operands[0] = indexed_operand(reg+1, w1);
+					if(end < p+2){
+						return 0;
+					}
+					w1 = p[0] | p[1] << 8;
+					p += 2;
+					len += 2;
+
+					if(reg == 0){
+						inst.operands[0] = symbolic_operand(w1);
+					} else if(reg == 2){
+						inst.operands[0] = absolute_operand(w1);
+					}else {
+						inst.operands[0] = indexed_operand(reg+1, w1);
+					}
 				}
 				*out = inst;
 				return len;
 			} else if(ad == 2){
 				inst.noperands = 1;
-				inst.operands[0] = indirect_register_operand(reg+1);
+				if(reg == 3){
+					inst.operands[0] = immediate_operand(2);
+				} else {
+					inst.operands[0] = indirect_register_operand(reg+1);
+				}
 				*out = inst;
 				return len;
 			} else if(ad == 3){
-				if(reg != 0){
-					inst.noperands = 1;
-					inst.operands[0] = indirect_autoinc_operand(reg+1);
-					*out = inst;
-					return len;
-				} else {
+				inst.noperands = 1;
+				if(reg == 0){
 					if(end < p+2){
 						return 0;
 					}
@@ -234,9 +245,13 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 					len += 2;
 					inst.noperands = 1;
 					inst.operands[0] = immediate_operand(w1);
-					*out = inst;
-					return len;
+				} else if(reg == 3){
+					inst.operands[0] = immediate_operand(-1);
+				} else {
+					inst.operands[0] = indirect_autoinc_operand(reg+1);
 				}
+				*out = inst;
+				return len;
 			} else {
 				// never
 				return 0;
@@ -449,14 +464,17 @@ int string_for_operand(struct operand operand, char *out){
 		return 0;
 	case OPMODE_INDEXED:
 		reg_str = lookup_reg_string(operand.reg);
-		sprintf(out, "0x%x(%s)", operand.disp & 0xffff, reg_str);
+		sprintf(out, "0x%x(%s)", operand.constant & 0xffff, reg_str);
 		return 0;
 	case OPMODE_SYMBOLIC:
-		reg_str = lookup_reg_string(REG_PC);
-		sprintf(out, "0x%x(%s)", operand.disp & 0xffff, reg_str);
+		if(0 <= (uint16_t)operand.constant){
+			sprintf(out, "$+0x%x", operand.constant);
+		} else {
+			sprintf(out, "$-0x%x", (-operand.constant));
+		}
 		return 0;
 	case OPMODE_ABSOLUTE:
-		sprintf(out, "&0x%x", operand.addr & 0xffff);
+		sprintf(out, "&0x%x", operand.constant & 0xffff);
 		return 0;
 	case OPMODE_INDIRECT_REGISTER:
 		reg_str = lookup_reg_string(operand.reg);
@@ -467,13 +485,13 @@ int string_for_operand(struct operand operand, char *out){
 		sprintf(out, "@%s+", reg_str);
 		return 0;
 	case OPMODE_IMMEDIATE:
-		sprintf(out, "#0x%x", operand.imm & 0xffff);
+		sprintf(out, "#0x%x", operand.constant & 0xffff);
 		return 0;
 	case OPMODE_JUMP:
-		if(0 <= operand.offset){
-			sprintf(out, "$+0x%x", operand.offset & 0xffff);
+		if(0 <= (int16_t)operand.constant){
+			sprintf(out, "$+0x%x", operand.constant & 0xffff);
 		} else {
-			sprintf(out, "$-0x%x", (-operand.offset) & 0xffff);
+			sprintf(out, "$-0x%x", (-operand.constant) & 0xffff);
 		}
 		return 0;
 	default:
