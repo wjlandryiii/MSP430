@@ -20,7 +20,8 @@ struct instruction {
 };
 
 int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruction *out);
-int string_for_operand(struct operand operand, char *out);
-void disassemble_instruction(struct instruction inst, char *out);
+int string_for_operation(const struct instruction instruction, char *out);
+int string_for_operand(const struct operand operand, char *out);
+void disassemble_instruction(const struct instruction inst, char *out);
 
 #endif

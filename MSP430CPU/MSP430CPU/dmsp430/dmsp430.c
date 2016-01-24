@@ -579,7 +579,20 @@ int unpack_instruction(const uint8_t *start, const uint8_t *end, struct instruct
 	return (int)(p - start);
 }
 
-int string_for_operand(struct operand operand, char *out){
+int string_for_operation(const struct instruction inst, char *out){
+	if(inst.operand_size == OPSIZE_16){
+		strcpy(out, lookup_mnemonic_for_operation(inst.operation));
+		return 0;
+	} else if(inst.operand_size == OPSIZE_8){
+		strcpy(out, lookup_mnemonic_for_operation(inst.operation));
+		strcat(out, ".b");
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+int string_for_operand(const struct operand operand, char *out){
 	char *reg_str;
 
 	switch(operand.mode){
@@ -625,15 +638,12 @@ int string_for_operand(struct operand operand, char *out){
 	}
 }
 
-void disassemble_instruction(struct instruction inst, char *out){
+void disassemble_instruction(const struct instruction inst, char *out){
 	char mnemonic[16];
 	char operand[2][16];
 	int i;
 
-	strcpy(mnemonic, lookup_mnemonic_for_operation(inst.operation));
-	if(inst.operand_size == OPSIZE_8){
-		strcat(mnemonic, ".b");
-	}
+	string_for_operation(inst, mnemonic);
 
 	for(i = 0; i < inst.noperands; i++){
 		string_for_operand(inst.operands[i], operand[i]);

@@ -114,7 +114,7 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 
 - (int)disassembleSingleInstruction:(DisasmStruct *)disasm usingProcessorMode:(NSUInteger)mode {
 	struct instruction *inst;
-	int len, i;
+	int len;
 	
 	inst = (struct instruction *)calloc(1, sizeof(*inst));
 	disasm->instruction.userData = (unsigned long)inst;
@@ -126,9 +126,6 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 	}
 	
 	if(0 < len){
-		strcpy(disasm->instruction.mnemonic, lookup_mnemonic_for_operation(inst->operation));
-		
-		
 		switch(inst->operation){
 			case OPER_CALL:
 				disasm->instruction.branchType = DISASM_BRANCH_CALL;
@@ -165,10 +162,6 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 			default:
 				disasm->instruction.branchType = DISASM_BRANCH_NONE;
 				break;
-		}
-		
-		for(i = 0; i < inst->noperands; i++){
-			string_for_operand(inst->operands[i], disasm->operand[i].mnemonic);
 		}
 		return len;
 	} else {
@@ -240,14 +233,52 @@ uint16_t memory_read_callback(uint32_t address, void* private) {
 - (void)buildInstructionString:(DisasmStruct *)disasm forSegment:(NSObject<HPSegment> *)segment populatingInfo:(NSObject<HPFormattedInstructionInfo> *)formattedInstructionInfo {
 	char *p = disasm->completeInstructionString;
 	int i;
+	struct instruction inst;
+	NSString *label;
+	
+	inst = *(struct instruction *)(disasm->instruction.userData);
+	
+	string_for_operation(inst, disasm->instruction.mnemonic);
+	
+	
+	for(i = 0; i < inst.noperands; i++){
+		switch(inst.operands[i].mode){
+			case OPMODE_REGISTER:
+			case OPMODE_INDEXED:
+			case OPMODE_INDIRECT_REGISTER:
+			case OPMODE_INDIRECT_AUTOINC:
+				string_for_operand(inst.operands[i], disasm->operand[i].mnemonic);
+				break;
+			case OPMODE_SYMBOLIC:
+			case OPMODE_JUMP:
+				label = [_file nameForVirtualAddress:disasm->virtualAddr + (int16_t)inst.operands[i].constant];
+				if(label != nil){
+					strcpy(disasm->operand[i].mnemonic, [label UTF8String]);
+				} else {
+					sprintf(disasm->operand[i].mnemonic, "#0x%llx", 0xffff & (disasm->virtualAddr + (int16_t)inst.operands[i].constant));
+					//string_for_operand(inst.operands[i], disasm->operand[i].mnemonic);
+				}
+				break;
+			case OPMODE_ABSOLUTE:
+			case OPMODE_IMMEDIATE:
+				label = [_file nameForVirtualAddress:inst.operands[i].constant];
+				if(label != nil){
+					strcpy(disasm->operand[i].mnemonic, [label UTF8String]);
+				} else {
+					string_for_operand(inst.operands[i], disasm->operand[i].mnemonic);
+				}
+				break;
+			default:
+				string_for_operand(inst.operands[i], disasm->operand[i].mnemonic);
+		}
+	}
+	
 	
 	if(disasm->operand[0].mnemonic[0] != 0){
 		sprintf(p, "%-8s ", disasm->instruction.mnemonic);
 		
 		i = 0;
 		while(disasm->operand[i].mnemonic[0] != 0){
-			//TODO: figure out how to use symbol labels
-			//NSString *sym = [_file nameForVirtualAddress:disasm->operand[i].immediateValue];
 			strcat(p, disasm->operand[i].mnemonic);
 			i++;
 			if(disasm->operand[i].mnemonic[0] != 0){
