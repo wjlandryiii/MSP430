@@ -4,6 +4,10 @@ MSP430CPU Hopper Plugin
 Hopper plugin for the MSP430 microcontroller.  
 Good enough for CTF use.
 
+Screen Shot
+-----------
+
+![ScreenShot](https://raw.githubusercontent.com/wjlandryiii/MSP430/master/screenshot.png)
 
 Install instructions
 --------------------
