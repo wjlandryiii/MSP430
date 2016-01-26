@@ -17,3 +17,8 @@ Install instructions
 3. Profit
 
 a post build script automatically copies the binary to the plugin directory.
+
+TODO
+----
+
+- add operand formatting
