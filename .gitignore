@@ -4,6 +4,9 @@
 *.dSYM
 *.o
 
+obj
+*.bundle
+
 decode
 main
 fake.bin
